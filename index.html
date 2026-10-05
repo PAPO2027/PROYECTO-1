@@ -11,8 +11,8 @@ body{margin:0;background:#10251a;color:white;font-family:Arial;display:flex;just
 <body><div class="wrap">
 <div id="menu" class="card">
 <h1>🐍 SNAKE EVOLUTION</h1>
-<p>Come frutas, crece y supera los 4 niveles.</p>
-<h3>Nivel inicial</h3>
+<p>Come gallinas, crece y sobrevive. Cada minuto aumenta el nivel.</p>
+<h3>Dificultad inicial</h3>
 <div class="levels"><button id="l1" class="sel" onclick="setLevel(1)">Nivel 1<br>Fácil</button><button id="l2" onclick="setLevel(2)">Nivel 2<br>Normal</button><button id="l3" onclick="setLevel(3)">Nivel 3<br>Difícil</button><button id="l4" onclick="setLevel(4)">Nivel 4<br>Extremo</button></div>
 <h3>Color de la serpiente</h3>
 <div class="colors"><button class="g sel" onclick="setColor('#22c55e',this)"></button><button class="b" onclick="setColor('#3b82f6',this)"></button><button class="r" onclick="setColor('#ef4444',this)"></button><button class="p" onclick="setColor('#a855f7',this)"></button><button class="y" onclick="setColor('#eab308',this)"></button><button class="c" onclick="setColor('#06b6d4',this)"></button></div>
@@ -34,23 +34,25 @@ body{margin:0;background:#10251a;color:white;font-family:Arial;display:flex;just
 <script>
 const cv=document.getElementById('c'),x=cv.getContext('2d'),N=20,CELL=30;
 let snake,food,powerUp,dir,next,score,record=0,level=1,lives,timer,powerTimer,active=false,paused=false,color='#22c55e',slowUntil=0;
-const speed={1:180,2:130,3:90,4:55},goal={1:5,2:10,3:15,4:20};
+const speed={1:180,2:130,3:90,4:55},goal={};
+const maxSpeedLevel=5;
 const fruits=['🐔','🐓','🐤','🐔','🐓'];
 const backgrounds={1:'#10251a',2:'#102238',3:'#321b16',4:'#26132f'};
+let levelStartTime=0;
 let fruitIndex=0;
 
 function setLevel(n){level=n;document.body.style.background=backgrounds[n];for(let i=1;i<5;i++)document.getElementById('l'+i).classList.toggle('sel',i===n);if(active){setTimer();draw()}}
 function setColor(c,b){color=c;document.querySelectorAll('.colors button').forEach(z=>z.classList.remove('sel'));b.classList.add('sel')}
 
 function start(){
- menuHide();document.body.style.background=backgrounds[level];score=0;lives=3;paused=false;active=true;slowUntil=0;fruitIndex=0;
+ menuHide();document.body.style.background=backgrounds[Math.min(level,4)];score=0;lives=3;levelStartTime=Date.now();paused=false;active=true;slowUntil=0;fruitIndex=0;
  snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];dir={x:1,y:0};next={x:1,y:0};powerUp=null;
  foodNew();ui();clearInterval(timer);clearTimeout(powerTimer);setTimer();schedulePower();draw();
  document.getElementById('msg').textContent='¡Come la fruta y busca potenciadores!';
 }
 function setTimer(){
  clearInterval(timer);
- const currentSpeed=Date.now()<slowUntil?Math.max(speed[level]*2,260):speed[level];
+ const baseLevel=Math.min(level,maxSpeedLevel); const currentSpeed=Date.now()<slowUntil?Math.max(speed[baseLevel]*2,260):speed[baseLevel];
  timer=setInterval(tick,currentSpeed);
 }
 function menuHide(){document.getElementById('menu').style.display='none';document.getElementById('game').style.display='block'}
@@ -71,7 +73,7 @@ function schedulePower(){
    document.getElementById('msg').textContent='✨ ¡Apareció un potenciador!';
    draw();
    schedulePower();
- },6000+Math.random()*5000);
+ },Math.max(2200,7000-(Math.min(level,10)-1)*500));
 }
 function move(a,b){if(a===-dir.x&&b===-dir.y)return;next={x:a,y:b}}
 
@@ -101,6 +103,14 @@ function collectPower(){
 
 function tick(){
  if(!active||paused)return;
+ const elapsed=Math.floor((Date.now()-levelStartTime)/60000);
+ const newLevel=Math.min(10,level + elapsed);
+ if(newLevel!==level){
+   level=newLevel;
+   document.body.style.background=backgrounds[Math.min(level,4)];
+   setTimer();
+   document.getElementById('msg').textContent='🔥 ¡Nivel '+level+'! Los potenciadores aparecen más rápido.';
+ }
  dir=next;
  let h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
  if(h.x<0||h.x>=N||h.y<0||h.y>=N||snake.some(s=>s.x===h.x&&s.y===h.y)){
@@ -110,11 +120,6 @@ function tick(){
  snake.unshift(h);
  if(h.x===food.x&&h.y===food.y){
    score++;record=Math.max(record,score);fruitIndex=(fruitIndex+1)%fruits.length;foodNew();
-   if(level<4&&score>=goal[level]){
-     level++;setTimer();document.getElementById('msg').textContent='🔥 ¡Subiste al nivel '+level+'!';
-   }else if(level===4&&score>=goal[4]){
-     active=false;clearInterval(timer);clearTimeout(powerTimer);document.getElementById('msg').textContent='🏆 ¡GANASTE LOS 4 NIVELES!';
-   }
  }else snake.pop();
  collectPower();ui();draw();
 }
@@ -138,13 +143,17 @@ function draw(){
    const emoji={slow:'🐢',heart:'❤️',bomb:'💣'}[powerUp.type];
    x.fillText(emoji,powerUp.x*CELL+15,powerUp.y*CELL+15);
  }
+ // Cuerpo continuo y redondeado: dibujamos una sola forma conectando cada segmento.
+ if(snake.length>1){
+   x.strokeStyle=color;x.lineWidth=24;x.lineCap='round';x.lineJoin='round';
+   x.beginPath();x.moveTo(snake[snake.length-1].x*CELL+15,snake[snake.length-1].y*CELL+15);
+   for(let i=snake.length-2;i>=0;i--)x.lineTo(snake[i].x*CELL+15,snake[i].y*CELL+15);
+   x.stroke();
+ }
  snake.forEach((s,i)=>{
    const px=s.x*CELL+15,py=s.y*CELL+15;
-   x.fillStyle=color;
-   x.beginPath();x.arc(px,py, i===0?13:12,0,Math.PI*2);x.fill();
-   if(i>0){x.globalAlpha=.8;x.beginPath();x.arc(px-3,py-3,7,0,Math.PI*2);x.fill();x.globalAlpha=1}
    if(i===0){
-     x.fillStyle='#b91c1c';x.beginPath();x.arc(px,py,12,0,Math.PI*2);x.fill();
+     x.fillStyle='#b91c1c';x.beginPath();x.arc(px,py,13,0,Math.PI*2);x.fill();
      x.fillStyle='#ef4444';x.beginPath();x.moveTo(px-10,py-5);x.lineTo(px-17,py-12);x.lineTo(px-13,py-1);x.closePath();x.fill();
      x.beginPath();x.moveTo(px+10,py-5);x.lineTo(px+17,py-12);x.lineTo(px+13,py-1);x.closePath();x.fill();
      x.fillStyle='white';x.beginPath();x.arc(px-5,py-3,3.5,0,Math.PI*2);x.fill();x.beginPath();x.arc(px+5,py-3,3.5,0,Math.PI*2);x.fill();
