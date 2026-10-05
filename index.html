@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Snake Evolution</title>
 <style>
-body{margin:0;background:#141e30;color:white;font-family:Arial;display:flex;justify-content:center;align-items:center;min-height:100vh}.wrap{width:650px;text-align:center}.card{background:#202020;padding:28px;border-radius:20px}h1{color:#4ade80}.levels button,.colors button{margin:5px;padding:12px;border:0;border-radius:9px;background:#333;color:#fff;cursor:pointer}.sel{background:#4ade80!important;color:#000!important}.colors button{width:44px;height:44px;border-radius:50%}.g{background:#22c55e!important}.b{background:#3b82f6!important}.r{background:#ef4444!important}.p{background:#a855f7!important}.y{background:#eab308!important}.c{background:#06b6d4!important}#game{display:none}.info{display:flex;justify-content:space-between;gap:5px;background:#252525;padding:10px;border-radius:8px;margin-bottom:8px;flex-wrap:wrap}canvas{width:600px;max-width:100%;background:#080808;border:3px solid #444}button{font-weight:bold}.controls button{width:55px;height:45px;background:#333;color:white;border:0;border-radius:8px;margin:2px;font-size:18px}.main{padding:14px 30px;background:#4ade80;border:0;border-radius:10px;font-size:18px}.msg{min-height:30px;padding:10px}.legend{font-size:14px;color:#ccc;line-height:1.5}
+body{margin:0;background:#10251a;color:white;font-family:Arial;display:flex;justify-content:center;align-items:center;min-height:100vh;transition:background 0.8s ease}.wrap{width:650px;text-align:center}.card{background:#202020;padding:28px;border-radius:20px}h1{color:#4ade80}.levels button,.colors button{margin:5px;padding:12px;border:0;border-radius:9px;background:#333;color:#fff;cursor:pointer}.sel{background:#4ade80!important;color:#000!important}.colors button{width:44px;height:44px;border-radius:50%}.g{background:#22c55e!important}.b{background:#3b82f6!important}.r{background:#ef4444!important}.p{background:#a855f7!important}.y{background:#eab308!important}.c{background:#06b6d4!important}#game{display:none}.info{display:flex;justify-content:space-between;gap:5px;background:#252525;padding:10px;border-radius:8px;margin-bottom:8px;flex-wrap:wrap}canvas{width:600px;max-width:100%;background:#080808;border:3px solid #444;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.3)}button{font-weight:bold}.controls button{width:55px;height:45px;background:#333;color:white;border:0;border-radius:8px;margin:2px;font-size:18px}.main{padding:14px 30px;background:#4ade80;border:0;border-radius:10px;font-size:18px}.msg{min-height:30px;padding:10px}.legend{font-size:14px;color:#ccc;line-height:1.5}
 </style>
 </head>
 <body><div class="wrap">
@@ -16,13 +16,13 @@ body{margin:0;background:#141e30;color:white;font-family:Arial;display:flex;just
 <div class="levels"><button id="l1" class="sel" onclick="setLevel(1)">Nivel 1<br>Fácil</button><button id="l2" onclick="setLevel(2)">Nivel 2<br>Normal</button><button id="l3" onclick="setLevel(3)">Nivel 3<br>Difícil</button><button id="l4" onclick="setLevel(4)">Nivel 4<br>Extremo</button></div>
 <h3>Color de la serpiente</h3>
 <div class="colors"><button class="g sel" onclick="setColor('#22c55e',this)"></button><button class="b" onclick="setColor('#3b82f6',this)"></button><button class="r" onclick="setColor('#ef4444',this)"></button><button class="p" onclick="setColor('#a855f7',this)"></button><button class="y" onclick="setColor('#eab308',this)"></button><button class="c" onclick="setColor('#06b6d4',this)"></button></div>
-<p class="legend">🍎 🍊 🫐 🍇 🍓 Las frutas cambian durante la partida.<br>🐢 ralentiza · ❤️ da una vida · 💣 quita una vida</p>
+<p class="legend">🐔 Las gallinas cambian durante la partida.<br>🐢 ralentiza · ❤️ da una vida · 💣 quita una vida</p>
 <button class="main" onclick="start()">🎮 JUGAR</button>
 </div>
 
 <div id="game">
 <h1>🐍 SNAKE</h1>
-<div class="info"><span>🍎 <b id="score">0</b></span><span>🏆 Récord <b id="record">0</b></span><span>Nivel <b id="level">1</b></span><span>🐍 <b id="len">3</b></span><span>❤️ <b id="lives">3</b></span><span>⚡ <b id="power">—</b></span></div>
+<div class="info"><span>🐔 <b id="score">0</b></span><span>🏆 Récord <b id="record">0</b></span><span>Nivel <b id="level">1</b></span><span>🐍 <b id="len">3</b></span><span>❤️ <b id="lives">3</b></span><span>⚡ <b id="power">—</b></span></div>
 <canvas id="c" width="600" height="600"></canvas>
 <div id="msg" class="msg">¡Come la fruta!</div>
 <button onclick="pause()">⏸️ Pausa</button><button onclick="start()">🔄 Reiniciar</button><button onclick="menu()">🏠 Menú</button>
@@ -35,14 +35,15 @@ body{margin:0;background:#141e30;color:white;font-family:Arial;display:flex;just
 const cv=document.getElementById('c'),x=cv.getContext('2d'),N=20,CELL=30;
 let snake,food,powerUp,dir,next,score,record=0,level=1,lives,timer,powerTimer,active=false,paused=false,color='#22c55e',slowUntil=0;
 const speed={1:180,2:130,3:90,4:55},goal={1:5,2:10,3:15,4:20};
-const fruits=['🍎','🍊','🫐','🍇','🍓'];
+const fruits=['🐔','🐓','🐤','🐔','🐓'];
+const backgrounds={1:'#10251a',2:'#102238',3:'#321b16',4:'#26132f'};
 let fruitIndex=0;
 
-function setLevel(n){level=n;for(let i=1;i<5;i++)document.getElementById('l'+i).classList.toggle('sel',i===n)}
+function setLevel(n){level=n;document.body.style.background=backgrounds[n];for(let i=1;i<5;i++)document.getElementById('l'+i).classList.toggle('sel',i===n);if(active){setTimer();draw()}}
 function setColor(c,b){color=c;document.querySelectorAll('.colors button').forEach(z=>z.classList.remove('sel'));b.classList.add('sel')}
 
 function start(){
- menuHide();score=0;lives=3;paused=false;active=true;slowUntil=0;fruitIndex=0;
+ menuHide();document.body.style.background=backgrounds[level];score=0;lives=3;paused=false;active=true;slowUntil=0;fruitIndex=0;
  snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];dir={x:1,y:0};next={x:1,y:0};powerUp=null;
  foodNew();ui();clearInterval(timer);clearTimeout(powerTimer);setTimer();schedulePower();draw();
  document.getElementById('msg').textContent='¡Come la fruta y busca potenciadores!';
@@ -138,8 +139,18 @@ function draw(){
    x.fillText(emoji,powerUp.x*CELL+15,powerUp.y*CELL+15);
  }
  snake.forEach((s,i)=>{
-   x.fillStyle=color;x.fillRect(s.x*CELL+2,s.y*CELL+2,26,26);
-   if(i===0){x.fillStyle='white';x.fillRect(s.x*CELL+7,s.y*CELL+7,5,5);x.fillRect(s.x*CELL+18,s.y*CELL+7,5,5)}
+   const px=s.x*CELL+15,py=s.y*CELL+15;
+   x.fillStyle=color;
+   x.beginPath();x.arc(px,py, i===0?13:12,0,Math.PI*2);x.fill();
+   if(i>0){x.globalAlpha=.8;x.beginPath();x.arc(px-3,py-3,7,0,Math.PI*2);x.fill();x.globalAlpha=1}
+   if(i===0){
+     x.fillStyle='#b91c1c';x.beginPath();x.arc(px,py,12,0,Math.PI*2);x.fill();
+     x.fillStyle='#ef4444';x.beginPath();x.moveTo(px-10,py-5);x.lineTo(px-17,py-12);x.lineTo(px-13,py-1);x.closePath();x.fill();
+     x.beginPath();x.moveTo(px+10,py-5);x.lineTo(px+17,py-12);x.lineTo(px+13,py-1);x.closePath();x.fill();
+     x.fillStyle='white';x.beginPath();x.arc(px-5,py-3,3.5,0,Math.PI*2);x.fill();x.beginPath();x.arc(px+5,py-3,3.5,0,Math.PI*2);x.fill();
+     x.fillStyle='#111';x.beginPath();x.arc(px-5,py-3,1.5,0,Math.PI*2);x.fill();x.beginPath();x.arc(px+5,py-3,1.5,0,Math.PI*2);x.fill();
+     x.strokeStyle='#fca5a5';x.lineWidth=2;x.beginPath();x.moveTo(px-4,py+6);x.quadraticCurveTo(px,py+10,px+4,py+6);x.stroke();
+   }
  });
 }
 document.addEventListener('keydown',e=>{
