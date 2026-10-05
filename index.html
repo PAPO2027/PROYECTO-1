@@ -11,7 +11,7 @@ body{margin:0;background:#10251a;color:white;font-family:Arial;display:flex;just
 <body><div class="wrap">
 <div id="menu" class="card">
 <h1>🐍 SNAKE EVOLUTION</h1>
-<p>Come gallinas, crece y sobrevive. Cada minuto aumenta el nivel.</p>
+<p>Come gallinas, crece y sobrevive. Cada 45 segundos aumenta el nivel.</p>
 <h3>Dificultad inicial</h3>
 <div class="levels"><button id="l1" class="sel" onclick="setLevel(1)">Nivel 1<br>Fácil</button><button id="l2" onclick="setLevel(2)">Nivel 2<br>Normal</button><button id="l3" onclick="setLevel(3)">Nivel 3<br>Difícil</button><button id="l4" onclick="setLevel(4)">Nivel 4<br>Extremo</button></div>
 <h3>Color de la serpiente</h3>
@@ -34,25 +34,27 @@ body{margin:0;background:#10251a;color:white;font-family:Arial;display:flex;just
 <script>
 const cv=document.getElementById('c'),x=cv.getContext('2d'),N=20,CELL=30;
 let snake,food,powerUp,dir,next,score,record=0,level=1,lives,timer,powerTimer,active=false,paused=false,color='#22c55e',slowUntil=0;
-const speed={1:180,2:130,3:90,4:55},goal={};
+const speed={1:180,2:145,3:115,4:90,5:70};
 const maxSpeedLevel=5;
 const fruits=['🐔','🐓','🐤','🐔','🐓'];
 const backgrounds={1:'#10251a',2:'#102238',3:'#321b16',4:'#26132f'};
 let levelStartTime=0;
+let startingLevel=1;
 let fruitIndex=0;
 
-function setLevel(n){level=n;document.body.style.background=backgrounds[n];for(let i=1;i<5;i++)document.getElementById('l'+i).classList.toggle('sel',i===n);if(active){setTimer();draw()}}
+function setLevel(n){level=n;startingLevel=n;document.body.style.background=backgrounds[n];for(let i=1;i<5;i++)document.getElementById('l'+i).classList.toggle('sel',i===n);if(active){levelStartTime=Date.now();setTimer();draw()}}
 function setColor(c,b){color=c;document.querySelectorAll('.colors button').forEach(z=>z.classList.remove('sel'));b.classList.add('sel')}
 
 function start(){
- menuHide();document.body.style.background=backgrounds[Math.min(level,4)];score=0;lives=3;levelStartTime=Date.now();paused=false;active=true;slowUntil=0;fruitIndex=0;
+ menuHide();document.body.style.background=backgrounds[Math.min(level,4)];score=0;lives=3;startingLevel=level;levelStartTime=Date.now();paused=false;active=true;slowUntil=0;fruitIndex=0;
  snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];dir={x:1,y:0};next={x:1,y:0};powerUp=null;
  foodNew();ui();clearInterval(timer);clearTimeout(powerTimer);setTimer();schedulePower();draw();
- document.getElementById('msg').textContent='¡Come la fruta y busca potenciadores!';
+ document.getElementById('msg').textContent='¡Come la gallina y busca potenciadores!';
 }
 function setTimer(){
  clearInterval(timer);
- const baseLevel=Math.min(level,maxSpeedLevel); const currentSpeed=Date.now()<slowUntil?Math.max(speed[baseLevel]*2,260):speed[baseLevel];
+ const baseLevel=Math.min(level,maxSpeedLevel);
+ const currentSpeed=Date.now()<slowUntil?Math.max(speed[baseLevel]*2,260):speed[baseLevel];
  timer=setInterval(tick,currentSpeed);
 }
 function menuHide(){document.getElementById('menu').style.display='none';document.getElementById('game').style.display='block'}
@@ -68,7 +70,9 @@ function schedulePower(){
  clearTimeout(powerTimer);
  powerTimer=setTimeout(()=>{
    if(!active)return;
-   const types=['slow','heart','bomb'];
+   const levelForPower=Math.min(level,10);
+   const bombWeight=1+Math.floor((levelForPower-1)/2);
+   const types=['slow','heart',...Array(bombWeight).fill('bomb')];
    powerUp={...emptyCell(),type:types[Math.floor(Math.random()*types.length)]};
    document.getElementById('msg').textContent='✨ ¡Apareció un potenciador!';
    draw();
@@ -103,13 +107,14 @@ function collectPower(){
 
 function tick(){
  if(!active||paused)return;
- const elapsed=Math.floor((Date.now()-levelStartTime)/60000);
- const newLevel=Math.min(10,level + elapsed);
+ const elapsed=Math.floor((Date.now()-levelStartTime)/45000);
+ const newLevel=Math.min(10,startingLevel+elapsed);
  if(newLevel!==level){
    level=newLevel;
    document.body.style.background=backgrounds[Math.min(level,4)];
    setTimer();
-   document.getElementById('msg').textContent='🔥 ¡Nivel '+level+'! Los potenciadores aparecen más rápido.';
+   schedulePower();
+   document.getElementById('msg').textContent='🔥 ¡Nivel '+level+'! La velocidad aumenta un poco y hay más potenciadores.';
  }
  dir=next;
  let h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
@@ -143,7 +148,6 @@ function draw(){
    const emoji={slow:'🐢',heart:'❤️',bomb:'💣'}[powerUp.type];
    x.fillText(emoji,powerUp.x*CELL+15,powerUp.y*CELL+15);
  }
- // Cuerpo continuo y redondeado: dibujamos una sola forma conectando cada segmento.
  if(snake.length>1){
    x.strokeStyle=color;x.lineWidth=24;x.lineCap='round';x.lineJoin='round';
    x.beginPath();x.moveTo(snake[snake.length-1].x*CELL+15,snake[snake.length-1].y*CELL+15);
