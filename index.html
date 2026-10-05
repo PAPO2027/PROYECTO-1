@@ -22,7 +22,7 @@ body{margin:0;background:#141e30;color:white;font-family:Arial;display:flex;just
 
 <div id="game">
 <h1>🐍 SNAKE</h1>
-<div class="info"><span>🍎 <b id="score">0</b></span><span>Nivel <b id="level">1</b></span><span>🐍 <b id="len">3</b></span><span>❤️ <b id="lives">3</b></span><span>⚡ <b id="power">—</b></span></div>
+<div class="info"><span>🍎 <b id="score">0</b></span><span>🏆 Récord <b id="record">0</b></span><span>Nivel <b id="level">1</b></span><span>🐍 <b id="len">3</b></span><span>❤️ <b id="lives">3</b></span><span>⚡ <b id="power">—</b></span></div>
 <canvas id="c" width="600" height="600"></canvas>
 <div id="msg" class="msg">¡Come la fruta!</div>
 <button onclick="pause()">⏸️ Pausa</button><button onclick="start()">🔄 Reiniciar</button><button onclick="menu()">🏠 Menú</button>
@@ -33,7 +33,7 @@ body{margin:0;background:#141e30;color:white;font-family:Arial;display:flex;just
 
 <script>
 const cv=document.getElementById('c'),x=cv.getContext('2d'),N=20,CELL=30;
-let snake,food,powerUp,dir,next,score,level=1,lives,timer,powerTimer,active=false,paused=false,color='#22c55e',slowUntil=0;
+let snake,food,powerUp,dir,next,score,record=0,level=1,lives,timer,powerTimer,active=false,paused=false,color='#22c55e',slowUntil=0;
 const speed={1:180,2:130,3:90,4:55},goal={1:5,2:10,3:15,4:20};
 const fruits=['🍎','🍊','🫐','🍇','🍓'];
 let fruitIndex=0;
@@ -108,7 +108,7 @@ function tick(){
  }
  snake.unshift(h);
  if(h.x===food.x&&h.y===food.y){
-   score++;fruitIndex=(fruitIndex+1)%fruits.length;foodNew();
+   score++;record=Math.max(record,score);fruitIndex=(fruitIndex+1)%fruits.length;foodNew();
    if(level<4&&score>=goal[level]){
      level++;setTimer();document.getElementById('msg').textContent='🔥 ¡Subiste al nivel '+level+'!';
    }else if(level===4&&score>=goal[4]){
@@ -120,6 +120,7 @@ function tick(){
 
 function ui(){
  document.getElementById('score').textContent=score;
+ document.getElementById('record').textContent=record;
  document.getElementById('level').textContent=level;
  document.getElementById('len').textContent=snake.length;
  document.getElementById('lives').textContent=lives;
